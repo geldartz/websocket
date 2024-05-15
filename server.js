@@ -1,15 +1,25 @@
+import express from 'express';
+import { createServer } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const wss = new WebSocketServer({ port: 8080 });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// This will hold the channels and their respective subscribed clients
+const app = express();
+const server = createServer(app);
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+const wss = new WebSocketServer({ server });
+
 const channels = new Map();
 
 wss.on('connection', function connection(ws) {
-    // Client subscriptions
     ws.subscribedChannels = new Set();
 
-    // Handle incoming messages
     ws.on('message', function message(data) {
         const parsedData = JSON.parse(data);
         const { action, channel, message } = parsedData;
@@ -48,7 +58,6 @@ wss.on('connection', function connection(ws) {
         }
     });
 
-    // Clean up when a client disconnects
     ws.on('close', function close() {
         ws.subscribedChannels.forEach(channel => {
             if (channels.has(channel)) {
@@ -61,6 +70,6 @@ wss.on('connection', function connection(ws) {
     });
 });
 
-console.log('WebSocket server is running on ws://localhost:8080');
-
-
+server.listen(8080, () => {
+    console.log('Server is listening on http://localhost:8080');
+});

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
+        #inputArea { display: flex; margin-top: 10px; }
+        #inputArea input { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Client</h1>
+    <div>
+        <label for="channelInput">Channel:</label>
+        <input type="text" id="channelInput">
+        <button onclick="subscribe()">Subscribe</button>
+        <button onclick="unsubscribe()">Unsubscribe</button>
+    </div>
+    <div id="messages"></div>
+    <div id="inputArea">
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.onopen = () => {
+            addMessage('Connected to WebSocket server');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            addMessage(`Message from ${data.channel}: ${data.message}`);
+        };
+
+        ws.onclose = () => {
+            addMessage('Disconnected from WebSocket server');
+        };
+
+        ws.onerror = (error) => {
+            addMessage(`WebSocket error: ${error.message}`);
+        };
+
+        function addMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function subscribe() {
+            const channel = document.getElementById('channelInput').value;
+            ws.send(JSON.stringify({ action: 'subscribe', channel }));
+            addMessage(`Subscribed to channel: ${channel}`);
+        }
+
+        function unsubscribe() {
+            const channel = document.getElementById('channelInput').value;
+            ws.send(JSON.stringify({ action: 'unsubscribe', channel }));
+            addMessage(`Unsubscribed from channel: ${channel}`);
+        }
+
+        function sendMessage() {
+            const channel = document.getElementById('channelInput').value;
+            const message = document.getElementById('messageInput').value;
+            ws.send(JSON.stringify({ action: 'message', channel, message }));
+            addMessage(`Sent to ${channel}: ${message}`);
+        }
+    </script>
+</body>
+</html>
