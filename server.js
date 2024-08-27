@@ -13,6 +13,8 @@ const server = createServer(app);
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+server.timeout = 10800000;
 const wss = new WebSocketServer({ server });
 
 const channels = new Map();

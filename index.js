@@ -2,11 +2,10 @@ import WebSocket, { WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 8080 });
 
-// This will hold the channels and their respective subscribed clients
+
 const channels = new Map();
 
 wss.on('connection', function connection(ws) {
-    // Client subscriptions
     ws.subscribedChannels = new Set();
 
     // Handle incoming messages
@@ -48,7 +47,6 @@ wss.on('connection', function connection(ws) {
         }
     });
 
-    // Clean up when a client disconnects
     ws.on('close', function close() {
         ws.subscribedChannels.forEach(channel => {
             if (channels.has(channel)) {
